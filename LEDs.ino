@@ -88,7 +88,7 @@ struct weather {
 };
 
 // get a random number x, where min <= x <= max
-int randNum(min, max) 
+int randNum(int min, int max) 
 {
     return rand() % (max - min + 1) + min;
 } 
@@ -127,8 +127,6 @@ void loop()
 
         // some weather controls here
 
-        // get a time object
-        time_t t = now();
         // make a weather struct 
         struct weather currWeather;
         // set the values of the struct
@@ -137,7 +135,7 @@ void loop()
 
         // set the sky and ground regions
         fillGround(1, false);
-        fillSky(t, currWeather);
+        fillSky(currWeather);
         
     }
     
@@ -254,8 +252,8 @@ void fillGround(int season, bool snow)
 }
 
 // fills the sky based off of the weather values passed. 6 possible sky
-// events, plus a change in hue depending on the time of day 
-void fillSky(time_t t, struct weather w)
+// events
+void fillSky(struct weather w)
 {
     // set the cloud cover
     switch(w.wVal)
