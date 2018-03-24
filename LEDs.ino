@@ -26,10 +26,8 @@
 #include <dmx.h>
 #include <power_mgt.h>
 
-#include <Time.h>
-
-
-#define LED_PIN     5
+// pin and LED info
+#define LED_PIN     5       // arduino pin 5
 #define NUM_LEDS    129     // number of LEDs on the strip
 #define BRIGHTNESS  255     // max brightness = 255
 #define LED_TYPE    WS2811
@@ -37,13 +35,15 @@
 
 CRGB leds[NUM_LEDS];        // led strip array
 
-#define UPDATES_PER_SECOND 100  // update speed 
+#define UPDATES_PER_SECOND 2  // update speed 
 
 CRGBPalette16 currentPalette;   // the current color palette (changes in loop)
 TBlendType currentBlending;  // blending (LINEARBLEND or NOBLEND)
 
-bool partyMode = false;     // party mode vs weather
+bool partyMode = false;     // party mode vs weather mode
 
+// these macros define the beggining and end indecies of the
+// different regions in the LED array. See the diagram below
 #define R_GROUND_S1     0
 #define R_GROUND_E1     12
 #define R_GROUND_S2     70
@@ -52,16 +52,15 @@ bool partyMode = false;     // party mode vs weather
 #define R_SKY_E1        69
 
 /*
-    Window regions shown below:
-
+    Window regions:
     ---------------------------------
     |░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░| 
-    |░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░|
+    |░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░|     <- Sky Region
     |░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░|
     |░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░|
 SE1 *░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░* SS1
 GS2 *▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒* GE1
-    |▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒|
+    |▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒|     <- Ground Region
     |▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒|
     -------------------------------** GS1
                                   GE2
@@ -72,9 +71,10 @@ GS2 *▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 */    
 
 // the weather struct is a container for the current weather passed to the 
-// funtions that change the regions colors. 
+// functions that change the region's colors. 
 struct weather {
     bool windy;
+    // use windForce?
     int wVal;
     /*
     wVal options:
@@ -84,6 +84,12 @@ struct weather {
     4- cloudy
     5- rainy
     6- snowy 
+    */
+    int windForce;
+    /*
+    windForce options:
+    1- light 
+    2- moderate
     */
 };
 
@@ -100,11 +106,14 @@ void setup()
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip); 
     FastLED.setBrightness(BRIGHTNESS);
     
-    currentPalette = RainbowColors_p; // init with a palette 
-    currentBlending = LINEARBLEND;
+    if (partyMode)
+    {
+        currentPalette = RainbowColors_p; // init with a palette 
+        currentBlending = LINEARBLEND;
+    }
 }
 
-
+// loop functon called during excecution
 void loop()
 {
     if (partyMode) 
@@ -120,10 +129,18 @@ void loop()
     }
     else 
     {
-        // otherwise, we want to control the LEDs by a series of functions that 
+        // Otherwise, we want to control the LEDs by a series of functions that 
         // individually change the LEDs by region based on the weather. We use the 
         // region start and ends defined above to access the parts of the array used 
         // for each of the two regions
+        /*
+        TODO:
+        get either-
+            a) a wifi/ethernet connection and get a realtime weather data json
+            b) a historical weather json 
+        Parse this source to get current conditions and change currWeather struct
+        accordingly on every update
+        */
 
         // some weather controls here
 
@@ -136,7 +153,6 @@ void loop()
         // set the sky and ground regions
         fillGround(1, false);
         fillSky(currWeather);
-        
     }
     
     FastLED.show();     // show changes
