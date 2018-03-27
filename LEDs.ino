@@ -29,13 +29,13 @@
 // pin and LED info
 #define LED_PIN     5       // arduino pin 5
 #define NUM_LEDS    129     // number of LEDs on the strip
-#define BRIGHTNESS  255     // max brightness = 255
+#define BRIGHTNESS  200     // max brightness = 255
 #define LED_TYPE    WS2811
 #define COLOR_ORDER GRB
 
 CRGB leds[NUM_LEDS];        // led strip array
 
-#define UPDATES_PER_SECOND 2  // update speed 
+#define UPDATES_PER_SECOND 0  // update speed 
 
 CRGBPalette16 currentPalette;   // the current color palette (changes in loop)
 TBlendType currentBlending;  // blending (LINEARBLEND or NOBLEND)
@@ -44,12 +44,12 @@ bool partyMode = false;     // party mode vs weather mode
 
 // these macros define the beggining and end indecies of the
 // different regions in the LED array. See the diagram below
-#define R_GROUND_S1     0
+#define R_GROUND_S1     1
 #define R_GROUND_E1     12
-#define R_GROUND_S2     70
+#define R_GROUND_S2     81
 #define R_GROUND_E2     129
 #define R_SKY_S1        13
-#define R_SKY_E1        69
+#define R_SKY_E1        80
 
 /*
     Window regions:
@@ -102,7 +102,7 @@ int randNum(int min, int max)
 // set up LEDs
 void setup() 
 {
-    delay(3000); // power-up safety delay
+    delay(1000); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip); 
     FastLED.setBrightness(BRIGHTNESS);
     
@@ -110,6 +110,7 @@ void setup()
     {
         currentPalette = RainbowColors_p; // init with a palette 
         currentBlending = LINEARBLEND;
+        
     }
 }
 
@@ -127,7 +128,7 @@ void loop()
 
         FillLEDsFromPaletteColors(startIndex); // filling the LEDs with the current palette
     }
-    else 
+    else
     {
         // Otherwise, we want to control the LEDs by a series of functions that 
         // individually change the LEDs by region based on the weather. We use the 
@@ -148,15 +149,27 @@ void loop()
         struct weather currWeather;
         // set the values of the struct
         currWeather.windy = false;
-        currWeather.wVal = 3;
 
-        // set the sky and ground regions
-        fillGround(1, false);
+        // select one of these for sky condition: 
+        //currWeather.wVal = 1;   // clear
+        currWeather.wVal = 2;   // partly cloudy
+        //currWeather.wVal = 3;   // more clouds
+        //currWeather.wVal = 4;   // cloudy
+
+        // and one of these for ground:
+        //fillGround(1, false);   // spring
+        fillGround(2, false);   // summer
+        //fillGround(3, false);   // fall
+        //fillGround(4, false);   // winter
+        //fillGround(4, true);   // winter, snowy
+        //fillGround(1, true);   // spring, snowy
+        //fillGround(3, true);   // fall, snowy
+        
         fillSky(currWeather);
     }
     
     FastLED.show();     // show changes
-    FastLED.delay(1000 / UPDATES_PER_SECOND);   // rerun periodically 
+    FastLED.delay(1000 / UPDATES_PER_SECOND);   // re-run periodically 
 }
 
 // fills the ground based off of the season, given in values 1-4
@@ -172,17 +185,29 @@ void fillGround(int season, bool snow)
             if ((i >= R_GROUND_S1 && i <= R_GROUND_E1) || 
                 (i >= R_GROUND_S2 && i <= R_GROUND_E2))
             // set ground 
-            leds[i] = CRGB::ForestGreen;
+            leds[i] = CRGB::Green;
         } 
-        for (unsigned int j = 0; j < (R_GROUND_E2 - R_GROUND_S2 / 4); j++) 
+        for (unsigned int j = 0; j < 20; j++) 
         {   
             // set ground accents
-            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::YellowGreen;
+            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::ForestGreen;
+        }
+        for (unsigned int j = 0; j < 5; j++) 
+        {   
+            // set ground accents
+            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::Yellow;
+        }
+        for (unsigned int j = 0; j < 5; j++) 
+        {   
+            // set ground accents
+            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::FireBrick;
         }
         // set some accents on first section of ground
-        leds[6] = CRGB::YellowGreen;
-        leds[2] = CRGB::YellowGreen;
-        leds[3] = CRGB::YellowGreen;
+        leds[6] = CRGB::Yellow;
+        leds[5] = CRGB::ForestGreen;
+        leds[6] = CRGB::ForestGreen;
+        leds[2] = CRGB::ForestGreen;
+        leds[3] = CRGB::ForestGreen;
         break;
 
         case 2:
@@ -192,21 +217,21 @@ void fillGround(int season, bool snow)
             if ((i >= R_GROUND_S1 && i <= R_GROUND_E1) || 
                 (i >= R_GROUND_S2 && i <= R_GROUND_E2))
             // set ground 
-            leds[i] = CRGB::DarkGreen;
+            leds[i] = CRGB::Green;
         } 
-        for (unsigned int j = 0; j < (R_GROUND_E2 - R_GROUND_S2 / 3); j++) 
+        for (unsigned int j = 0; j < 30; j++) 
         {   
             // set ground accents
-            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::Gold;
+            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::LawnGreen;
         }
         // set some accents on first section of ground
-        leds[6] = CRGB::Gold;
-        leds[2] = CRGB::Gold;
-        leds[3] = CRGB::Gold;
+        leds[6] = CRGB::LawnGreen;
+        leds[2] = CRGB::LawnGreen;
+        leds[3] = CRGB::LawnGreen;
         break;
 
         case 3:
-        // case 3: summer
+        // case 3: fall
         for (unsigned int i = 0; i <= NUM_LEDS; i++)
         {
             if ((i >= R_GROUND_S1 && i <= R_GROUND_E1) || 
@@ -214,15 +239,15 @@ void fillGround(int season, bool snow)
             // set ground 
             leds[i] = CRGB::Orange;
         } 
-        for (unsigned int j = 0; j < (R_GROUND_E2 - R_GROUND_S2 / 3); j++) 
+        for (unsigned int j = 0; j < 25; j++) 
         {   
             // set ground accents
-            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::Peru;
+            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::SaddleBrown;
         }
         // set some accents on first section of ground
-        leds[6] = CRGB::Peru;
-        leds[2] = CRGB::Peru;
-        leds[3] = CRGB::Peru;
+        leds[6] = CRGB::SaddleBrown;
+        leds[2] = CRGB::SaddleBrown;
+        leds[3] = CRGB::SaddleBrown;
         break;
 
         case 4:
@@ -232,17 +257,17 @@ void fillGround(int season, bool snow)
             if ((i >= R_GROUND_S1 && i <= R_GROUND_E1) || 
                 (i >= R_GROUND_S2 && i <= R_GROUND_E2))
             // set ground 
-            leds[i] = CRGB::DarkOliveGreen;
+            leds[i] = CRGB::Olive;
         } 
-        for (unsigned int j = 0; j < (R_GROUND_E2 - R_GROUND_S2 / 3); j++) 
+        for (unsigned int j = 0; j < 25; j++) 
         {   
             // set ground accents
-            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::Peru;
+            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::OliveDrab;
         }
         // set some accents on first section of ground
-        leds[6] = CRGB::Peru;
-        leds[2] = CRGB::Peru;
-        leds[3] = CRGB::Peru;
+        leds[6] = CRGB::OliveDrab;
+        leds[2] = CRGB::OliveDrab;
+        leds[3] = CRGB::OliveDrab;
         break;
 
         default:
@@ -252,17 +277,17 @@ void fillGround(int season, bool snow)
     // if there's snow, randomly populate half the ground with white
     if (snow)
     {  
-        for (unsigned int j = 0; j < (R_GROUND_E2 - R_GROUND_S2 / 2); j++) 
+        for (unsigned int j = 0; j < 30; j++) 
         {   
             // set ground accents
-            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::White;
+            leds[randNum(R_GROUND_S2, R_GROUND_E2)] = CRGB::CadetBlue;
         }
         // set some accents on first section of ground
-        leds[12] = CRGB::White;
-        leds[11] = CRGB::White;
-        leds[6] = CRGB::White;
-        leds[2] = CRGB::White;
-        leds[3] = CRGB::White;
+        leds[12] = CRGB::CadetBlue;
+        leds[11] = CRGB::CadetBlue;
+        leds[6] = CRGB::CadetBlue;
+        leds[2] = CRGB::CadetBlue;
+        leds[3] = CRGB::CadetBlue;
     }
 
 }
@@ -279,7 +304,7 @@ void fillSky(struct weather w)
         for (unsigned int i = R_SKY_S1; i <= R_SKY_E1; i++)
         {
             // set sky
-            leds[i] = CRGB::SkyBlue;
+            leds[i] = CRGB::Blue;
         } 
         break;
 
@@ -288,12 +313,12 @@ void fillSky(struct weather w)
         for (unsigned int i = R_SKY_S1; i <= R_SKY_E1; i++)
         {
             // set sky
-            leds[i] = CRGB::SkyBlue;
+            leds[i] = CRGB::Blue;
         } 
-        for (unsigned int j = 0; j < (R_SKY_E1 - R_SKY_S1 / 4); j++)
+        for (unsigned int j = 0; j < 30; j++)
         {
             // set clouds
-            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::White;
+            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::MediumSeaGreen;
         }
         break;
 
@@ -302,12 +327,12 @@ void fillSky(struct weather w)
         for (unsigned int i = R_SKY_S1; i <= R_SKY_E1; i++)
         {
             // set sky
-            leds[i] = CRGB::SkyBlue;
+            leds[i] = CRGB::Blue;
         } 
-        for (unsigned int j = 0; j < (R_SKY_E1 - R_SKY_S1 / 2); j++)
+        for (unsigned int j = 0; j < 70; j++)
         {
             // set clouds
-            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::White;
+            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::MediumSeaGreen;
         }
         break;
 
@@ -316,12 +341,12 @@ void fillSky(struct weather w)
         for (unsigned int i = R_SKY_S1; i <= R_SKY_E1; i++)
         {
             // set clouds
-            leds[i] = CRGB::White;
+            leds[i] = CRGB::CadetBlue;
         } 
-        for (unsigned int j = 0; j < (R_SKY_E1 - R_SKY_S1 / 2); j++)
+        for (unsigned int j = 0; j < 24; j++)
         {
             // set dark clouds
-            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::Gray;
+            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::Black;
         } 
         break;
 
@@ -330,12 +355,12 @@ void fillSky(struct weather w)
         for (unsigned int i = R_SKY_S1; i <= R_SKY_E1; i++)
         {
             // set clouds
-            leds[i] = CRGB::White;
+            leds[i] = CRGB::CadetBlue;
         } 
-        for (unsigned int j = 0; j < (R_SKY_E1 - R_SKY_S1 / 2); j++)
+        for (unsigned int j = 0; j < 24; j++)
         {
             // set dark clouds
-            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::Gray;
+            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::Black;
         } 
         break;
 
@@ -344,13 +369,13 @@ void fillSky(struct weather w)
         for (unsigned int i = R_SKY_S1; i <= R_SKY_E1; i++)
         {
             // set clouds
-            leds[i] = CRGB::White;
+            leds[i] = CRGB::CadetBlue;
         } 
-        for (unsigned int j = 0; j < (R_SKY_E1 - R_SKY_S1 / 2); j++)
+        for (unsigned int j = 0; j < 24; j++)
         {
             // set dark clouds
-            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::Gray;
-        } 
+            leds[randNum(R_SKY_S1, R_SKY_E1)] = CRGB::Black;
+        }  
         break;
 
         default:
@@ -358,7 +383,7 @@ void fillSky(struct weather w)
         for (unsigned int i = R_SKY_S1; i <= R_SKY_E1; i++)
         {
             // set sky
-            leds[i] = CRGB::SkyBlue;
+            leds[i] = CRGB::Blue;
         } 
         break;
     }
